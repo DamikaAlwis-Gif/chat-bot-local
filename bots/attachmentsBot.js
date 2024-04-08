@@ -31,7 +31,7 @@ class AttachmentsBot extends TeamsActivityHandler {
     this.onMessage(async (context, next) => {
       // Determine how the bot should process the message by checking for attachments.
       const imageExtensions = ["jpeg", "jpg", "png"];
-      const imageRegex = /image\/.*/;
+
       TurnContext.removeRecipientMention(context.activity);
       const attachments = context.activity.attachments;
 
@@ -48,7 +48,7 @@ class AttachmentsBot extends TeamsActivityHandler {
             await context.sendActivity(summary);
           } else {
             await context.sendActivity(
-              "Please upload a image first to get details of a image"
+              "Please upload a image first to get more details of a image"
             );
           }
         } else {
@@ -172,6 +172,7 @@ class AttachmentsBot extends TeamsActivityHandler {
 
       return res.data;
     } catch (error) {
+      console.log(error);
       return undefined;
     }
   };
