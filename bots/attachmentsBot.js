@@ -37,8 +37,9 @@ class AttachmentsBot extends TeamsActivityHandler {
 
       if (context.activity.text) {
         // await context.sendActivity(`Echo: ${context.activity.text}`);
-        const messageText = context.activity.text.toLowerCase();
-        if (messageText.includes("more")) {
+        const regex = /more/i;
+        const messageText = context.activity.text;
+        if (regex.test(messageText)) {
           // Provide additional details
 
           if (this.imageAnalysisResponce) {
@@ -85,10 +86,19 @@ class AttachmentsBot extends TeamsActivityHandler {
     });
   }
 
+  returnItemsAsList = (arr) => {
+    let string = "";
+    for (let i = 0; i < arr.length; i++) {
+      string += `\n${i + 1}.${arr[i]}`;
+    }
+    return string;
+  };
+
   summarizeResponse = (result) => {
+    
     // extracting the caption details
     const caption = result.captionResult.text;
-    const captionConfidence = result.captionResult.confidence;
+    //const captionConfidence = result.captionResult.confidence;
 
     // Extracting dense captions
     const denseCaptions = result.denseCaptionsResult.values.map(
@@ -103,28 +113,31 @@ class AttachmentsBot extends TeamsActivityHandler {
       object.tags.map((tag) => tag.name)
     );
 
-    // Extracting image credit
-    const credit = result.readResult.blocks
-      .filter((block) =>
-        block.lines.some((line) =>
-          line.words.some((word) => word.text === "Credit:")
-        )
-      )
-      .map((block) =>
-        block.lines
-          .find((line) => line.words.some((word) => word.text === "Credit:"))
-          .words.filter((word) => word.text !== "Credit:")
-          .map((word) => word.text)
-      )
-      .join(" ");
+    const blocks = result.readResult.blocks;
+    const textLines = [];
+    for (const block of blocks) {
+      // Iterate over each line within the block
+      for (const line of block.lines) {
+        // Extract the text from the line and add it to the textLines array
+        textLines.push(line.text);
+      }
+    }
 
     // Summarizing the content
-    const summary = `
-    Caption: ${caption} (Confidence: ${captionConfidence})
-    Dense Captions: ${denseCaptions.join(", ")}
-    Tags: ${tags.join(", ")}
-    Object Tags: ${objectTags.join(", ")}
-    Image Credit: ${credit}`;
+    const summary =
+      `Caption: ${caption}` +
+      "\n" +
+      "Dense Captions:" +
+      this.returnItemsAsList(denseCaptions) +
+      "\n" +
+      `Tags: ${tags.join(", ")}` +
+      "\n" +
+      `Object Tags: ${objectTags.join(", ")}` +
+      "\n" +
+      `Image Text: ${this.returnItemsAsList(textLines)}`;
+  
+    console.log(summary.trim())
+
     return summary;
   };
 
