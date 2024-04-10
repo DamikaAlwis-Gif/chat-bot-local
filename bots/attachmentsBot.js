@@ -95,33 +95,21 @@ class AttachmentsBot extends TeamsActivityHandler {
   };
 
   summarizeResponse = (result) => {
-    
+
     // extracting the caption details
-    const caption = result.captionResult.text;
+    const caption = result.caption;
     //const captionConfidence = result.captionResult.confidence;
 
     // Extracting dense captions
-    const denseCaptions = result.denseCaptionsResult.values.map(
-      (caption) => caption.text
-    );
+    const denseCaptions = result.denseCaptions;
     // Extracting tags
-    const tags = result.tagsResult.values.map((tag) => tag.name);
+    const tags = result.tags;
 
     // extracting
     // Extracting objects
-    const objectTags = result.objectsResult.values.flatMap((object) =>
-      object.tags.map((tag) => tag.name)
-    );
+    const objectTags = result.objectTags;
 
-    const blocks = result.readResult.blocks;
-    const textLines = [];
-    for (const block of blocks) {
-      // Iterate over each line within the block
-      for (const line of block.lines) {
-        // Extract the text from the line and add it to the textLines array
-        textLines.push(line.text);
-      }
-    }
+    const textLines = result.textLines;
 
     // Summarizing the content
     const summary =
@@ -135,8 +123,6 @@ class AttachmentsBot extends TeamsActivityHandler {
       `Object Tags: ${objectTags.join(", ")}` +
       "\n" +
       `Image Text: ${this.returnItemsAsList(textLines)}`;
-  
-    console.log(summary.trim())
 
     return summary;
   };
@@ -145,7 +131,7 @@ class AttachmentsBot extends TeamsActivityHandler {
     const res = await this.getImageAnalysisResponce(context);
     if (res) {
       this.imageAnalysisResponce = res;
-      const caption = res.result.captionResult.text;
+      const caption = res.result.caption;
       await context.sendActivity(`This image contains: ${caption}`);
     } else {
       await context.sendActivity(
@@ -176,7 +162,7 @@ class AttachmentsBot extends TeamsActivityHandler {
 
       const res = await axios.post(
         // "https://image-analyze-api.azurewebsites.net/api/imageanalysis/imagebuffer",
-        "http://localhost:5000/api/imageanalysis/imagebuffer",
+        "http://localhost:5000/api/imageanalysis/imagebuffer/summarized",
 
         {
           imageBuffer: response.data,
