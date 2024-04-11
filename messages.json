@@ -1,0 +1,8 @@
+{
+  "WELLCOME_MESSAGE": "Welcome to the Image Analyzer bot! I'm here to assist you. Please upload an image.",
+  "INVALID_MESSAGE_ERROR": "Sorry, I can't handle this type of messages at this moment. Please upload an image.",
+  "INVALID_FILE_TYPE_ERROR": "Invalid file type. Please ensure that you upload an image with either a .jpeg, .jpg, or .png file extension.",
+  "IMAGE_PROCESSING_ERROR": "An error occurred while processing the image.",
+  "NO_IMAGE_UPLOADED_ERROR": "Please upload an image first to get more details about it."
+
+}

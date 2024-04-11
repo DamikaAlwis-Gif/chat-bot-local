@@ -8,8 +8,12 @@ const {
 } = require("botbuilder");
 
 const axios = require("axios");
+const { HumanMessage, AIMessage } = require("@langchain/core/messages");
+const { ChatMessageHistory } = require("langchain/stores/message/in_memory");
+const history = new ChatMessageHistory();
 
-class AttachmentsBot extends TeamsActivityHandler {
+const messages = require("../messages.json")
+class TeamsBot extends TeamsActivityHandler {
   constructor() {
     super();
 
@@ -19,9 +23,7 @@ class AttachmentsBot extends TeamsActivityHandler {
       for (let cnt = 0; cnt < membersAdded.length; cnt++) {
         if (membersAdded[cnt].id !== context.activity.recipient.id) {
           // send a greeting message to the user.
-          await context.sendActivity(
-            "Welcome to the AI_bot! I'm here to assist you. Please upload an image."
-          );
+          await context.sendActivity(messages.WELLCOME_MESSAGE);
 
           await next();
         }
@@ -36,51 +38,37 @@ class AttachmentsBot extends TeamsActivityHandler {
       const attachments = context.activity.attachments;
 
       if (context.activity.text) {
-        // await context.sendActivity(`Echo: ${context.activity.text}`);
+        // regex for handeling more keyword
         const regex = /more/i;
         const messageText = context.activity.text;
+        history.addMessage(new HumanMessage(messageText));
+
         if (regex.test(messageText)) {
           // Provide additional details
-
           if (this.imageAnalysisResponce) {
-            const summary = this.summarizeResponse(
+            const summary = this.getMoreInfoImage(
               this.imageAnalysisResponce.result
             );
             await context.sendActivity(summary);
           } else {
-            await context.sendActivity(
-              "Please upload a image first to get more details of a image"
-            );
+            await context.sendActivity(messages.NO_IMAGE_UPLOADED_ERROR);
           }
         } else {
-          await context.sendActivity(
-            "Sorry, I can't assist with that at the moment. Please upload an image."
-          );
+          await context.sendActivity(messages.INVALID_MESSAGE_ERROR);
         }
-      } else if (attachments && attachments[0]) {
-        // if (
-        //     attachments[0].contentType === "application/vnd.microsoft.teams.file.download.info" &&
-        //     imageExtensions.includes(attachments[0].content.fileType)
-        // ) {
-
-        //     await this.handleIncomingAttachment(context);
-
-        // } else if (imageRegex.test(attachments[0].contentType)) {
-        //     await context.sendActivity(
-        //         "I'm sorry, I can't process inline images."
-        //     );
-        // } else {
-        //     await context.sendActivity(
-        //         "I'm sorry, I can only process incoming images."
-        //     );
-        // }
-
+      } else if (
+        attachments &&
+        attachments[0] &&
+        attachments[0].contentType ===
+          "application/vnd.microsoft.teams.file.download.info" &&
+        imageExtensions.includes(attachments[0].content.fileType)
+      ) {
+        history.addMessage(new HumanMessage(context.activity.attachments));
         await this.handleIncomingAttachment(context);
       } else {
-        await context.sendActivity(
-          "I'm sorry, I can only handle incoming attachments or text messages. Please upload an image or send a text message."
-        );
+        await context.sendActivity(messages.INVALID_FILE_TYPE_ERROR);
       }
+      console.log(history.getMessages());
 
       await next();
     });
@@ -94,24 +82,13 @@ class AttachmentsBot extends TeamsActivityHandler {
     return string;
   };
 
-  summarizeResponse = (result) => {
-
-    // extracting the caption details
+  getMoreInfoImage = (result) => {
     const caption = result.caption;
-    //const captionConfidence = result.captionResult.confidence;
-
-    // Extracting dense captions
     const denseCaptions = result.denseCaptions;
-    // Extracting tags
     const tags = result.tags;
-
-    // extracting
-    // Extracting objects
     const objectTags = result.objectTags;
 
     const textLines = result.textLines;
-
-    // Summarizing the content
     const summary =
       `Caption: ${caption}` +
       "\n" +
@@ -132,11 +109,9 @@ class AttachmentsBot extends TeamsActivityHandler {
     if (res) {
       this.imageAnalysisResponce = res;
       const caption = res.result.caption;
-      await context.sendActivity(`This image contains: ${caption}`);
+      await context.sendActivity(`This image contains ${caption}`);
     } else {
-      await context.sendActivity(
-        "An error occurred while processing the image."
-      );
+      await context.sendActivity(messages.IMAGE_PROCESSING_ERROR);
     }
   };
 
@@ -161,9 +136,7 @@ class AttachmentsBot extends TeamsActivityHandler {
       }
 
       const res = await axios.post(
-        // "https://image-analyze-api.azurewebsites.net/api/imageanalysis/imagebuffer",
-        "http://localhost:5000/api/imageanalysis/imagebuffer/summarized",
-
+        "https://image-analyze-api.azurewebsites.net/api/imageanalysis/imagebuffer/summarized",
         {
           imageBuffer: response.data,
         }
@@ -177,4 +150,4 @@ class AttachmentsBot extends TeamsActivityHandler {
   };
 }
 
-module.exports.AttachmentsBot = AttachmentsBot;
+module.exports.TeamsBot = TeamsBot;

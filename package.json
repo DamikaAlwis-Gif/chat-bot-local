@@ -19,6 +19,7 @@
     "axios": "^0.21.2",
     "botbuilder": "~4.22.1",
     "dotenv": "^8.2.0",
+    "langchain": "^0.1.32",
     "restify": "~10.0.0"
   },
   "devDependencies": {
