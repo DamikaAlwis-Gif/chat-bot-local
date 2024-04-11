@@ -16,7 +16,7 @@ const {
     ConfigurationBotFrameworkAuthentication
 } = require('botbuilder');
 
-const { AttachmentsBot } = require('./bots/attachmentsBot');
+const { TeamsBot } = require("./bots/teamsBot");
 
 const botFrameworkAuthentication = new ConfigurationBotFrameworkAuthentication(process.env);
 
@@ -45,7 +45,7 @@ adapter.onTurnError = async (context, error) => {
 };
 
 // Create the AttachmentsBot.
-const bot = new AttachmentsBot();
+const bot = new TeamsBot();
 
 // Create HTTP server
 const server = restify.createServer();
