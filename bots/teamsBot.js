@@ -56,10 +56,10 @@ class TeamsBot extends TeamsActivityHandler {
       } else if (
         attachments &&
         attachments[0] 
-        // &&
-        // attachments[0].contentType ===
-        //   "application/vnd.microsoft.teams.file.download.info" &&
-        // imageExtensions.includes(attachments[0].content.fileType)
+        &&
+        attachments[0].contentType ===
+          "application/vnd.microsoft.teams.file.download.info" &&
+        imageExtensions.includes(attachments[0].content.fileType)
       ) {
         await this.history.addMessage(
           new HumanMessage(context.activity.attachments),
@@ -120,8 +120,8 @@ class TeamsBot extends TeamsActivityHandler {
   };
 
   getImageAnalysisResponce = async (context) => {
-    // const url = context.activity.attachments[0].content.downloadUrl;
-    const url = context.activity.attachments[0].contentUrl;
+    const url = context.activity.attachments[0].content.downloadUrl;
+    //const url = context.activity.attachments[0].contentUrl;
 
 
     try {
