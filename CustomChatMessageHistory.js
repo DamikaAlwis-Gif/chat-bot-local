@@ -19,12 +19,39 @@ class CustomChatMessageHistory extends BaseListChatMessageHistory {
 
   async getMessages(sessionId) {
     const messages = this.fakeDatabase.getMessages(sessionId) || [];
-    return mapStoredMessagesToChatMessages(messages);
+    // return mapStoredMessagesToChatMessages(messages);
+    return messages;
   }
 
   async addMessage(message, sessionId) {
     const serializedMessage = mapChatMessagesToStoredMessages([message])[0];
-    this.fakeDatabase.addMessage(sessionId, serializedMessage);
+    //{
+            //     role: "system",
+            //     content: [
+            //       {
+            //         type: "text",
+            //         text: "You are an ai assistant that gives answers for questions.",
+                 //  },
+                //  console.log(message);
+                //  console.log(serializedMessage);
+                 
+                let temp = {
+                  role:
+                    serializedMessage.type === "human"
+                      ? "user"
+                      : serializedMessage.type === "ai"
+                      ? "assistant"
+                      : serializedMessage.type,
+                  content: [
+                    {
+                      type: "text",
+                      text: `${serializedMessage.data.content}`,
+                    },
+                  ],
+                };
+                
+    
+    this.fakeDatabase.addMessage(sessionId, temp);
   }
 
   async addMessages(messages, sessionId) {

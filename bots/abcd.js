@@ -5,7 +5,7 @@ const {
 } = require("botbuilder");
 
 const axios = require("axios");
-const { HumanMessage, AIMessage, SystemMessage } = require("@langchain/core/messages");
+const { HumanMessage, AIMessage } = require("@langchain/core/messages");
 const CustomChatMessageHistory = require("../CustomChatMessageHistory");
 const messages = require("../messages.json");
 
@@ -13,7 +13,7 @@ class TeamsBot extends TeamsActivityHandler {
   constructor() {
     super();
     this.history = new CustomChatMessageHistory();
-     
+
     this.onMembersAdded(async (context, next) => {
       const membersAdded = context.activity.membersAdded;
       for (let cnt = 0; cnt < membersAdded.length; cnt++) {
@@ -29,24 +29,15 @@ class TeamsBot extends TeamsActivityHandler {
 
       TurnContext.removeRecipientMention(context.activity);
       const attachments = context.activity.attachments;
-      const temp = await this.history.getMessages(context.activity.conversation.id);
-      console.log(temp)
-      if(temp.length === 0){
-        await this.history.addMessage(
-          new SystemMessage(
-            "You are an ai assistant that gives answers for questions."
-          ),
-          context.activity.conversation.id
-        );
-      }
-       
 
       if (context.activity.text) {
         const regex = /more/i;
         const messageText = context.activity.text;
 
         if (regex.test(messageText)) {
-          
+          console.log(
+            this.history.getMessages(context.activity.conversation.id)
+          );
           const messages = await this.history.getMessages(
             context.activity.conversation.id
           );
@@ -62,54 +53,41 @@ class TeamsBot extends TeamsActivityHandler {
           }
         } else {
           // await context.sendActivity(messages.INVALID_MESSAGE_ERROR);
-          
+          let resultMessage = null;
           await this.history.addMessage(
             new HumanMessage(messageText),
             context.activity.conversation.id
           );
-          // console.log(typeof context.activity.conversation.id);
-          // console.log(
-          //   this.history.fakeDatabase.data[context.activity.conversation.id]
-          // );
-          // let data1 = 
-          //   this.history.fakeDatabase.data[context.activity.conversation.id]
-          
-          
-          // let resultString = "";
-          // let dataList =
-          //   this.history.fakeDatabase.data[context.activity.conversation.id];
-          // dataList.forEach((item) => {
-          //   resultString += item.data.content + " ";
-          // });
-          //console.log(resultString);
+          console.log(
+            this.history.fakeDatabase.data[
+              "3535c750-fcae-11ee-abd2-876024654f9b|livechat"
+            ]
+          );
 
           let data = JSON.stringify({
-            // messages: [
-            //   {
-            //     role: "system",
-            //     content: [
-            //       {
-            //         type: "text",
-            //         text: "You are an ai assistant that gives answers for questions.",
-            //       },
-            //     ],
-            //     role: "user",
-            //     content: [
-            //       {
-            //         type: "text",
+            messages: [
+              {
+                role: "system",
+                content: [
+                  {
+                    type: "text",
+                    text: "You are an ai assistant that gives answers for questions.",
+                  },
+                ],
+                role: "user",
+                content: [
+                  {
+                    type: "text",
 
-            //         text: `${resultString} ${messageText}`,
-            //       },
-            //     ],
-            //   },
-            //],
-            messages: this.history.fakeDatabase.data[context.activity.conversation.id],
-            
+                    text: `${messageText}`,
+                  },
+                ],
+              },
+            ],
             temperature: 0.7,
             top_p: 0.95,
             max_tokens: 800,
           });
-         
 
           let config = {
             method: "post",
@@ -124,12 +102,6 @@ class TeamsBot extends TeamsActivityHandler {
 
           try {
             const r = await axios.request(config);
-            // console.log(r.data.choices[0].message);
-            await this.history.addMessage(
-              new AIMessage( r.data.choices[0].message.content
-              ),
-              context.activity.conversation.id
-            );
             await context.sendActivity(r.data.choices[0].message.content);
           } catch (error) {
             console.log(error);
